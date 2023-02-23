@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Account</title>
+</head>
+<style>
+    .field {
+        margin: 1rem;
+    }
+</style>
+<body>
+
+    <form method="POST" action="">
+
+        <div class="field">
+            <label for="username">Username </label>
+            <input type="text" id="username" name="username" required value={{username_value}} >
+<!--            <span style="color: red"> {{ form.username.errors }} </span>-->
+
+        <span style="color: red">
+            <ul>
+                {% for error in username %}
+                    <li> {{error}} </li>
+                {% endfor%}
+            </ul>
+        </span>
+
+
+        </div>
+
+        <div class="field">
+            <label for="password1">Password </label>
+            <input type="password" id="password1" name="password1" required>
+<!--            <span style="color: red"> {{ form.password1.errors }} </span>-->
+
+        <span style="color: red">
+            <ul>
+                {% for error in password1 %}
+                    <li> {{error}} </li>
+                {% endfor%}
+            </ul>
+        </span>
+        </div>
+
+        <div class="field">
+            <label for="password2">Re-enter Password </label>
+            <input type="password" id="password2" name="password2" required>
+<!--            <span style="color: red"> {{ form.password2.errors }} </span>-->
+
+        <span style="color: red">
+            <ul>
+                {% for error in password2 %}
+                    <li> {{error}} </li>
+                {% endfor%}
+            </ul>
+        </span>
+        </div>
+
+        <div class="field">
+            <label for="email">Email </label>
+            <input type="email" id="email" name="email" value={{email_value}}>
+<!--            <span style="color: red"> {{ form.email.errors }} </span>-->
+
+        <span style="color: red">
+            <ul>
+                {% for error in email %}
+                    <li> {{error}} </li>
+                {% endfor%}
+            </ul>
+        </span>
+
+        </div>
+
+        <div class="field">
+            <label for="first_name">First Name </label>
+            <input type="text" id="first_name" name="first_name" value={{first_name_value}}>
+        </div>
+
+        <div class="field">
+            <label for="last_name">Last Name </label>
+            <input type="text" id="last_name" name="last_name" value={{last_name_value}}>
+        </div>
+
+<!--        {% if errors %}-->
+<!--            <span style="color: red">-->
+<!--                There are {{errors|length}} errors(s).-->
+<!--                <ul>-->
+<!--                    {% for error in errors %}-->
+<!--                        <li> {{error}} </li>-->
+<!--                    {% endfor%}-->
+<!--                </ul>-->
+<!--            </span>-->
+<!--        {% endif %}-->
+
+        <div class="field">
+           <input type="submit" value="submit">
+        </div>
+
+    </form>
+
+</body>
+</html>
