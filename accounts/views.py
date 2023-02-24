@@ -1,12 +1,14 @@
 from builtins import super, format
 
 from django import forms
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed, request
-from django.contrib.auth import authenticate, login, logout
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed, request, request, JsonResponse
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.shortcuts import render
+from django.contrib.auth import update_session_auth_hash
 
 # Create your views here.
 from django.template.response import TemplateResponse
@@ -92,6 +94,8 @@ class Login(View):
             context['errors'].append('Username or password is invalid')
             return TemplateResponse(request, 'accounts/login.html', context=context)
 
+    HttpResponseNotAllowed(['GET', 'POST'])
+
 
 class Logout(View):
     def get(self, request, *args, **kwargs):
@@ -100,5 +104,78 @@ class Logout(View):
 
 
 class ProfileView(View):
-    def get(self, *args, **kwargs):
-        return HttpResponse('hello')
+    def get(self, request, *args, **kwargs):
+
+        if request.user.is_authenticated:
+            user = request.user
+
+            data = {"id": user.id, "username": user.username, "email": user.email, "first_name": user.first_name,
+                    "last_name": user.last_name}
+            return JsonResponse(data)
+        else:
+            return HttpResponse('UNAUTHORIZED', status=401)
+
+    HttpResponseNotAllowed(['GET'])
+
+
+class EditProfile(View):
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            user = request.user
+
+            context = {'email_value': user.email, 'first_name_value': user.first_name,
+                       'last_name_value': user.last_name}
+            return TemplateResponse(request, 'accounts/edit.html',
+                                    context=context)
+        else:
+            return HttpResponse('UNAUTHORIZED', status=401)
+
+    def post(self, request, *args, **kwargs):
+
+        if request.user.is_authenticated:
+            user = request.user
+
+            # updated values
+            password1 = request.POST.get('password1', '')
+            password2 = request.POST.get('password2', '')
+            email = request.POST.get('email', '')
+            first_name = request.POST.get('first_name', '')
+            last_name = request.POST.get('last_name', '')
+
+            user.first_name = first_name
+            user.last_name = last_name
+
+            context = {'password1': [], 'password2': [], 'email': [],
+                       'email_value': email, 'first_name_value': first_name, 'last_name_value': last_name}
+
+            try:
+                validate_email(email)
+            except ValidationError:
+                context['email'].append("Enter a valid email address")
+            else:
+                user.email = email
+
+            if password1 != password2:
+                context['password1'].append("The two password fields didn't match")
+                context['password2'].append("The two password fields didn't match")
+
+            if (password1 is None or password1 is "") and (password2 is None or password2 is ""):
+                pass
+            if 1 <= len(password1) < 8:
+                context['password1'].append("This password is too short. It must contain at least 8 characters")
+            if 1 <= len(password2) < 8:
+                context['password2'].append("This password is too short. It must contain at least 8 characters")
+            else:
+                user.set_password(str(password1))
+
+            if len(context['password1']) > 0 or len(context['password2']) > 0 or len(context['email']) > 0:
+                return TemplateResponse(request, 'accounts/edit.html',
+                                        context=context)
+            else:
+                user.save()
+                update_session_auth_hash(request, user)
+                return HttpResponseRedirect('/accounts/profile/view/')
+
+        else:
+            return HttpResponse('UNAUTHORIZED', status=401)
