@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Branch</title>
+</head>
+<style>
+    .field {
+        margin: 1rem;
+    }
+</style>
+<body>
+
+    <form method="POST" action="">
+
+        <div class="field">
+            <label for="name">Name </label>
+<!--            <span style="color: red"> {{ form.name.errors }} </span>-->
+
+            <span style="color: red">
+                <ul>
+                    {% for error in name %}
+                        <li> {{error}} </li>
+                    {% endfor%}
+                </ul>
+            </span>
+
+            <input type="text" id="name" name="name" required value={{name_value}} >
+
+
+
+        </div>
+
+        <div class="field">
+            <label for="transit_num">Transit Number </label>
+<!--            <span style="color: red"> {{ form.description.errors }} </span>-->
+            <span style="color: red">
+                <ul>
+                    {% for error in transit_num %}
+                        <li> {{error}} </li>
+                    {% endfor%}
+                </ul>
+            </span>
+            <input type="text" id="transit_num" name="transit_num" required value={{transit_num_value}}>
+
+
+
+
+        </div>
+
+        <div class="field">
+            <label for="address">Address </label>
+<!--            <span style="color: red"> {{ form.inst_num.errors }} </span>-->
+
+            <span style="color: red">
+                <ul>
+                    {% for error in address %}
+                        <li> {{error}} </li>
+                    {% endfor%}
+                </ul>
+            </span>
+            <input type="text" id="address" name="address" required value={{address_value}}>
+
+
+<!--        <span style="color: red">-->
+<!--            <ul>-->
+<!--                {% for error in password2 %}-->
+<!--                    <li> {{error}} </li>-->
+<!--                {% endfor%}-->
+<!--            </ul>-->
+<!--        </span>-->
+        </div>
+
+        <div class="field">
+            <label for="email">Email </label>
+<!--            <span style="color: red"> {{ form.swift_code.errors }} </span>-->
+            <span style="color: red">
+                <ul>
+                    {% for error in email %}
+                        <li> {{error}} </li>
+                    {% endfor%}
+                </ul>
+            </span>
+            <input type="email" id="email" name="email" required value={{email_value}}>
+
+        </div>
+
+        <div class="field">
+            <label for="capacity">Capacity </label>
+<!--            <span style="color: red"> {{ form.swift_code.errors }} </span>-->
+            <span style="color: red">
+                <ul>
+                    {% for error in capacity %}
+                        <li> {{error}} </li>
+                    {% endfor%}
+                </ul>
+            </span>
+            <input type="number" id="capacity" name="capacity" value={{capacity_value}}>
+        </div>
+
+
+
+        <div class="field">
+           <input type="submit" value="Add">
+        </div>
+
+    </form>
+
+</body>
+</html>

@@ -113,7 +113,7 @@ class ProfileView(View):
                     "last_name": user.last_name}
             return JsonResponse(data)
         else:
-            return HttpResponse('UNAUTHORIZED', status=401)
+            return HttpResponse('401 UNAUTHORIZED ', status=401)
 
     HttpResponseNotAllowed(['GET'])
 
@@ -129,7 +129,7 @@ class EditProfile(View):
             return TemplateResponse(request, 'accounts/edit.html',
                                     context=context)
         else:
-            return HttpResponse('UNAUTHORIZED', status=401)
+            return HttpResponse('401 UNAUTHORIZED ', status=401)
 
     def post(self, request, *args, **kwargs):
 
@@ -178,4 +178,4 @@ class EditProfile(View):
                 return HttpResponseRedirect('/accounts/profile/view/')
 
         else:
-            return HttpResponse('UNAUTHORIZED', status=401)
+            return HttpResponse('401 UNAUTHORIZED ', status=401)
