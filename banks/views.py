@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 
 # Create your views here.
@@ -133,10 +133,10 @@ class AddBranch(View):
         capacity = request.POST.get('capacity', '')
 
         context = {'name': [], 'transit_num': [], 'address': [], 'email': [], 'capacity': [],
-                   'name_value': name, 'transit_num_value': transit_num, 'address_value': address, 'email_value': email,
-                   'capacity_value': capacity}
+                   'name_value': name, 'transit_num_value': transit_num, 'address_value': address,
+                   'email_value': email}
 
-        print(context['name_value'])
+        # print(context['name_value'])
 
         if name is None or name == "":
             context['name'].append('This field is required')
@@ -163,8 +163,11 @@ class AddBranch(View):
         else:
             pass
 
-        if int(capacity) < 0:
+        if capacity is None or capacity == "":
+            context['capacity_value'] = None
+        elif int(capacity) < 0:
             context['capacity'].append("Ensure this value is greater than or equal to 0")
+            context['capacity_value'] = capacity
 
         if len(context['name']) > 0 or len(context['transit_num']) > 0 or len(context['address']) > 0 or len(
                 context['email']) > 0 or len(context['capacity']) > 0:
@@ -172,6 +175,11 @@ class AddBranch(View):
                                     context=context)
         else:
             user = request.user
+
+            if capacity is None or capacity == "":
+                capacity = None
+            else:
+                capacity = int(capacity)
 
             branch = Branch.objects.create(name=name, transit_num=transit_num, address=address, email=email,
                                            capacity=capacity, bank=bank)
@@ -190,7 +198,7 @@ class BankIdDetails(View):
 
             # get all branches of this bank
             data = Branch.objects.filter(bank=bank).values()
-            print(data)
+            # print(data)
             context = {'id': url_bank_id, 'name': bank.name, 'description': bank.description,
                        'swift_code': bank.swift_code
                 , 'inst_num': bank.inst_num, 'data': data}
@@ -204,7 +212,25 @@ class BankIdDetails(View):
 class BranchIdDetails(View):
 
     def get(self, request, *args, **kwargs):
-        return HttpResponse("The Branch id is: " + str(self.kwargs['branch_id']))
+
+        url_branch_id = self.kwargs['branch_id']
+
+        # Check if user is logged in
+        if request.user.is_authenticated:
+            pass
+        else:
+            return HttpResponse('401 UNAUTHORIZED', status=401)
+
+        # Check if branch id exists
+        if Branch.objects.filter(id=url_branch_id).exists():
+            branch = Branch.objects.get(id=url_branch_id)
+        else:
+            return HttpResponse('404 NOT FOUND', status=404)
+
+        # get branch data
+        data = {"id": branch.id, "name": branch.name, "transit_num": branch.transit_num, "address": branch.address,
+                "email": branch.email, "capacity": branch.capacity, "last_modified": branch.last_modified}
+        return JsonResponse(data)
 
 
 class AllBanks(ListView):
@@ -213,6 +239,128 @@ class AllBanks(ListView):
 
     def get(self, request, *args, **kwargs):
         return super(AllBanks, self).get(request, *args, **kwargs)
+
+
+class EditBranch(View):
+    def get(self, request, *args, **kwargs):
+        url_branch_id = self.kwargs['branch_id']
+
+        # Check if user is logged in
+        if request.user.is_authenticated:
+            pass
+        else:
+            return HttpResponse('401 UNAUTHORIZED', status=401)
+
+        # Check if branch id exists
+        if Branch.objects.filter(id=url_branch_id).exists():
+            branch = Branch.objects.get(id=url_branch_id)
+        else:
+            return HttpResponse('404 NOT FOUND', status=404)
+
+        # Check if user is the owner of the corresponding bank
+        bank = branch.bank
+        bank_owner = bank.owner
+        user_logged_in = request.user
+
+        if user_logged_in.id == bank_owner.id:
+            pass
+        else:
+            return HttpResponse('403 FORBIDDEN', status=403)
+
+        # data = Branch.objects.filter(id=url_branch_id).values()
+        context = {'name_value': branch.name, 'transit_num_value': branch.transit_num, 'address_value': branch.address,
+                   'email_value': branch.email, 'capacity_value': branch.capacity}
+
+        return TemplateResponse(request, 'banks/editBranch.html',
+                                context=context)
+
+    def post(self, request, *args, **kwargs):
+        url_branch_id = self.kwargs['branch_id']
+
+        # Check if user is logged in
+        if request.user.is_authenticated:
+            pass
+        else:
+            return HttpResponse('401 UNAUTHORIZED', status=401)
+
+        # Check if branch id exists
+        if Branch.objects.filter(id=url_branch_id).exists():
+            branch = Branch.objects.get(id=url_branch_id)
+        else:
+            return HttpResponse('404 NOT FOUND', status=404)
+
+        # Check if user that's logged in is the owner of the corresponding bank
+        bank = branch.bank
+        bank_owner = bank.owner
+        user_logged_in = request.user
+
+        if user_logged_in.id == bank_owner.id:
+            pass
+        else:
+            return HttpResponse('403 FORBIDDEN', status=403)
+
+        # updated values
+        name = request.POST.get('name', '')
+        transit_num = request.POST.get('transit_num', '')
+        address = request.POST.get('address', '')
+        email = request.POST.get('email', '')
+        capacity = request.POST.get('capacity', '')
+
+        context = {'name': [], 'transit_num': [], 'address': [], 'email': [], 'capacity': [], 'name_value': branch.name,
+                   'transit_num_value': branch.transit_num, 'address_value': branch.address,
+                   'email_value': branch.email, 'capacity_value': branch.capacity}
+
+        if name is None or name == "":
+            context['name'].append('This field is required')
+        elif len(name) > 100:
+            context['name'].append("Ensure this value has at most 100 characters (it has " + str(len(name)) + ")")
+        context['name_value'] = name
+
+        if transit_num is None or transit_num == "":
+            context['transit_num'].append('This field is required')
+        elif len(transit_num) > 100:
+            context['transit_num'].append(
+                "Ensure this value has at most 100 characters (it has " + str(len(transit_num)) + ")")
+        context['transit_num_value'] = transit_num
+
+        if address is None or address == "":
+            context['address'].append('This field is required')
+        elif len(address) > 100:
+            context['address'].append("Ensure this value has at most 100 characters (it has " + str(len(address)) + ")")
+        context['address_value'] = address
+
+        if email is None or email == '':
+            context['email'].append('This field is required')
+        try:
+            validate_email(email)
+        except ValidationError:
+            context['email'].append("Enter a valid email address")
+        context['email_value'] = email
+
+        if capacity is None or capacity == "":
+            context['capacity_value'] = None
+        elif int(capacity) < 0:
+            context['capacity'].append("Ensure this value is greater than or equal to 0")
+            context['capacity_value'] = capacity
+
+        if len(context['name']) > 0 or len(context['transit_num']) > 0 or len(context['address']) > 0 or len(
+                context['email']) > 0 or len(context['capacity']) > 0:
+            # print('Here')
+            return TemplateResponse(request, 'banks/editBranch.html',
+                                    context=context)
+        else:
+            branch.name = name
+            branch.transit_num = transit_num
+            branch.address = address
+            branch.email = email
+            if capacity is None or capacity == "":
+                branch.capacity = None
+            else:
+                branch.capacity = int(capacity)
+            branch.save()
+            branch_id = branch.id
+            return HttpResponseRedirect(f'/banks/branch/{branch_id}/details/')
+
 
 
 class Test(View):

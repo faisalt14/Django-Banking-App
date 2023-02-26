@@ -21,7 +21,7 @@ class Branch(models.Model):
     transit_num = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
     email = models.EmailField(default='admin@utoronto.ca')
-    capacity = models.PositiveIntegerField()
+    capacity = models.PositiveIntegerField(null=True, blank=True)
     last_modified = models.DateTimeField(auto_now=True)
     bank = models.ForeignKey(to=Bank, null=True, on_delete=SET_NULL)
 
