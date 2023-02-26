@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, HttpResponseNotAllowed
 from django.shortcuts import render
 
 # Create your views here.
@@ -70,6 +70,8 @@ class AddBank(View):
             bank_id = bank.id
             return HttpResponseRedirect(f'/banks/{bank_id}/details/')
 
+    HttpResponseNotAllowed(['GET', 'POST'])
+
 
 class AddBranch(View):
 
@@ -136,8 +138,6 @@ class AddBranch(View):
                    'name_value': name, 'transit_num_value': transit_num, 'address_value': address,
                    'email_value': email}
 
-        # print(context['name_value'])
-
         if name is None or name == "":
             context['name'].append('This field is required')
         elif len(name) > 100:
@@ -186,6 +186,8 @@ class AddBranch(View):
             branch_id = branch.id
             return HttpResponseRedirect(f'/banks/branch/{branch_id}/details/')
 
+    HttpResponseNotAllowed(['GET', 'POST'])
+
 
 class BankIdDetails(View):
 
@@ -198,15 +200,16 @@ class BankIdDetails(View):
 
             # get all branches of this bank
             data = Branch.objects.filter(bank=bank).values()
-            # print(data)
+
             context = {'id': url_bank_id, 'name': bank.name, 'description': bank.description,
-                       'swift_code': bank.swift_code
-                , 'inst_num': bank.inst_num, 'data': data}
+                       'swift_code': bank.swift_code, 'inst_num': bank.inst_num, 'data': data}
 
             return TemplateResponse(request, 'banks/bankDetails.html', context=context)
 
         else:
             return HttpResponse('404 NOT FOUND', status=404)
+
+    HttpResponseNotAllowed(['GET'])
 
 
 class BranchIdDetails(View):
@@ -232,6 +235,8 @@ class BranchIdDetails(View):
                 "email": branch.email, "capacity": branch.capacity, "last_modified": branch.last_modified}
         return JsonResponse(data)
 
+    HttpResponseNotAllowed(['GET'])
+
 
 class AllBanks(ListView):
     model = Bank
@@ -240,6 +245,7 @@ class AllBanks(ListView):
     def get(self, request, *args, **kwargs):
         return super(AllBanks, self).get(request, *args, **kwargs)
 
+    HttpResponseNotAllowed(['GET'])
 
 class EditBranch(View):
     def get(self, request, *args, **kwargs):
@@ -345,7 +351,7 @@ class EditBranch(View):
 
         if len(context['name']) > 0 or len(context['transit_num']) > 0 or len(context['address']) > 0 or len(
                 context['email']) > 0 or len(context['capacity']) > 0:
-            # print('Here')
+
             return TemplateResponse(request, 'banks/editBranch.html',
                                     context=context)
         else:
@@ -361,8 +367,4 @@ class EditBranch(View):
             branch_id = branch.id
             return HttpResponseRedirect(f'/banks/branch/{branch_id}/details/')
 
-
-
-class Test(View):
-    def get(self, request, *args, **kwargs):
-        return HttpResponse("success")
+    HttpResponseNotAllowed(['GET', 'POST'])

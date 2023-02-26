@@ -102,6 +102,8 @@ class Logout(View):
         logout(request)
         return HttpResponseRedirect('/accounts/login/')
 
+    HttpResponseNotAllowed(['GET'])
+
 
 class ProfileView(View):
     def get(self, request, *args, **kwargs):
@@ -179,3 +181,5 @@ class EditProfile(View):
 
         else:
             return HttpResponse('401 UNAUTHORIZED ', status=401)
+
+    HttpResponseNotAllowed(['GET', 'POST'])
