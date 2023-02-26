@@ -4,9 +4,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 
 # Create your views here.
+from django.template import loader
 from django.template.response import TemplateResponse
 from django.views import View
-from django.views.generic import FormView
+from django.views.generic import FormView, ListView, TemplateView
 
 from banks.forms.addBank import AddBankForm
 from banks.models import Bank, Branch
@@ -171,20 +172,47 @@ class AddBranch(View):
                                     context=context)
         else:
             user = request.user
+
             branch = Branch.objects.create(name=name, transit_num=transit_num, address=address, email=email,
-                                           capacity=capacity)
+                                           capacity=capacity, bank=bank)
             branch_id = branch.id
             return HttpResponseRedirect(f'/banks/branch/{branch_id}/details/')
 
 
 class BankIdDetails(View):
+
     def get(self, request, *args, **kwargs):
-        return HttpResponse("The Bank id is: " + str(self.kwargs['bank_id']))
+        url_bank_id = self.kwargs['bank_id']
+
+        # Check if bank id exists
+        if Bank.objects.filter(id=url_bank_id).exists():
+            bank = Bank.objects.get(id=url_bank_id)
+
+            # get all branches of this bank
+            data = Branch.objects.filter(bank=bank).values()
+            print(data)
+            context = {'id': url_bank_id, 'name': bank.name, 'description': bank.description,
+                       'swift_code': bank.swift_code
+                , 'inst_num': bank.inst_num, 'data': data}
+
+            return TemplateResponse(request, 'banks/bankDetails.html', context=context)
+
+        else:
+            return HttpResponse('404 NOT FOUND', status=404)
 
 
 class BranchIdDetails(View):
+
     def get(self, request, *args, **kwargs):
         return HttpResponse("The Branch id is: " + str(self.kwargs['branch_id']))
+
+
+class AllBanks(ListView):
+    model = Bank
+    template_name = 'banks/bank_list.html'
+
+    def get(self, request, *args, **kwargs):
+        return super(AllBanks, self).get(request, *args, **kwargs)
 
 
 class Test(View):

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Banks</title>
+</head>
+<body>
+    <ul>
+
+        {% for bank in object_list %}
+        <!-- Display Banks -->
+
+        <li><a href="../{{ bank.id }}/details/">{{ bank.name }}</a> &nbsp Institution Number: {{ bank.inst_num }}</li> <br>
+
+
+
+        <!-- If object_list is empty  -->
+        {% empty %}
+        <li>No banks made yet.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
